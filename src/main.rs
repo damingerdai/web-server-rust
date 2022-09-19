@@ -15,14 +15,32 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.read(&mut buffer).unwrap();
 
-    let contents = fs::read_to_string("hello.html").unwrap();
+    let get = b"GET / HTTP/1.1\r\n";
 
-    let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nContent-Type: text/html\r\n\r\n{}",
-        contents.len(),
-        contents
-    );
+    if buffer.starts_with(get) {
+        let contents = fs::read_to_string("hello.html").unwrap();
 
-    stream.write(response.as_bytes()).unwrap();
-    stream.flush().unwrap();
+        let response = format!(
+            "http/1.1 200 ok\r\ncontent-length: {}\r\ncontent-type: text/html\r\n\r\n{}",
+            contents.len(),
+            contents
+        );
+
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
+
+    } else {
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let contents = fs::read_to_string("404.html").unwrap();
+
+        let response = format!(
+            "{}\r\ncontent-length: {}\r\ncontent-type: text/html\r\n\r\n{}",
+            status_line,
+            contents.len(),
+            contents
+        );
+
+        stream.write(response.as_bytes()).unwrap();
+        stream.flush().unwrap();
+    }
 }
